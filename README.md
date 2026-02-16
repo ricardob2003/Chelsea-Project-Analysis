@@ -32,27 +32,45 @@ chelsea-recruitment-engine/
 ├── .env.example
 ├── Pipfile
 │
+├── apps/
+│   ├── api/
+│   │   ├── app/
+│   │   │   ├── main.py
+│   │   │   ├── db.py
+│   │   │   └── routers/
+│   │   └── requirements.txt
+│   └── web/
+│       ├── src/
+│       │   ├── app/
+│       │   ├── api/
+│       │   ├── components/
+│       │   ├── features/
+│       │   └── pages/
+│       ├── package.json
+│       ├── tsconfig.json
+│       └── vite.config.ts
+│
 ├── data/
 │   └── raw/
 │       ├── premier_league/
 │       ├── fbref/
 │       ├── transfermarkt/
 │       └── whoscored/
+│   └── staged/
 │
 ├── sql/
 │   ├── create_schema.sql
+│   ├── raw/
 │   ├── staged/
 │   ├── mart/
 │   └── views/
-│       ├── vw_team_season_summary.sql
-│       ├── vw_match_team.sql
-│       ├── vw_squad_structure.sql
-│       └── vw_recruitment_priority.sql
 │
 ├── src/
 │   ├── ingest/
+│   ├── load/
 │   ├── orchestration/
 │   ├── quality/
+│   ├── transform/
 │   └── utils/
 │
 ├── dashboards/
@@ -63,7 +81,7 @@ chelsea-recruitment-engine/
 │
 └── docs/
     ├── project_spec.md
-    ├── data_contracts.md
+    ├── data_model.md
     ├── metric_definitions.md
-    └── tableau_data_dictionary.md
+    └── field_coverage_draft.md
 ```
