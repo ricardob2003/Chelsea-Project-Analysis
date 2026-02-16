@@ -2,7 +2,28 @@
 
 Data and analytics project to prioritize Chelsea recruitment decisions using Premier League performance, squad structure, and market data.
 
-## Project Structure
+### A. Project Question + Purpose
+
+#### Primary Question
+
+Where should Chelsea focus recruitment (U-22 strategy) to maximize **Premier League** outcomes:
+
+1. Consistent **UCL qualification (Top 4)**
+2. Realistic **title contention (Top 2 / defined points threshold)**
+
+#### Purpose
+
+Build a structured decision-support system that transforms match, squad, and league performance data into:
+
+- Recruitment priorities by position/role
+- Evidence-based performance gap diagnostics
+- Strategic recommendations grounded in measurable KPIs
+
+This system replaces narrative-driven analysis with reproducible, data-backed evaluation of Chelsea’s recruitment strategy.
+
+---
+
+### Project Structure
 
 ```text
 chelsea-recruitment-engine/
