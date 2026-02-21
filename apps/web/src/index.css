@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 7%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 10%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 216 100% 29%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 216 85% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --chelsea-blue: 216 100% 29%;
+    --chelsea-gold: 43 96% 56%;
+    --chelsea-glow: 216 100% 29% / 0.25;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 216 100% 29%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 20% 7%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 216 100% 29%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 16% 16%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 220 14% 18%;
+    --sidebar-ring: 216 100% 29%;
+
+    --font-display: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .font-mono-data {
+    font-family: var(--font-mono);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px hsl(var(--chelsea-glow)), 0 0 60px hsl(216 100% 29% / 0.1);
+  }
+
+  .glow-border {
+    border-color: hsl(var(--chelsea-blue) / 0.3);
+  }
+
+  .stat-gradient {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(220 18% 12%) 100%);
+  }
+
+  .kpi-positive {
+    color: hsl(var(--success));
+  }
+
+  .kpi-negative {
+    color: hsl(var(--destructive));
+  }
+
+  .kpi-neutral {
+    color: hsl(var(--warning));
+  }
+}
