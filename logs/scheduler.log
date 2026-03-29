@@ -1,0 +1,16 @@
+Loading .env environment variables...
+[03/29/26 16:41:13] INFO     No custom team name replacements found.  _config.py:92
+                             You can configure these in                            
+                             /Users/ricardobarahona/soccerdata/config              
+                             /teamname_replacements.json.                          
+                    INFO     No custom league dict found. You can    _config.py:198
+                             configure additional leagues in                       
+                             /Users/ricardobarahona/soccerdata/confi               
+                             g/league_dict.json.                                   
+                    INFO     Scheduler started — pipeline runs      scheduler.py:39
+                             every 7 days                                          
+                    INFO     Next run: 2026-04-05 16:41:13.935344   scheduler.py:40
+Traceback (most recent call last):
+  File "/Users/ricardobarahona/Programming/Personal Projects /pl-analysis/scheduler.py", line 44, in <module>
+    time.sleep(3600)  # check every hour
+KeyboardInterrupt

@@ -4,12 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+fastapi = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 pyyaml = "*"
 python-dateutil = "*"
 pandas = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
+soccerdata = "*"
+schedule = "*"
 
 [dev-packages]
 pytest = "*"
