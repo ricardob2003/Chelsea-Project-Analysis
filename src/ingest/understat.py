@@ -171,7 +171,8 @@ def run(seasons: list[int] | None = None) -> None:
     Defaults to last 3 completed seasons + current.
     """
     if seasons is None:
-        seasons = [2021, 2022, 2023, 2024, 2025]
+        from src.utils.seasons import season_window_understat
+        seasons = season_window_understat(n=5)
 
     batch_id = str(uuid.uuid4())[:8]
     logger.info(f"Understat ingest — batch {batch_id}, seasons {seasons}")

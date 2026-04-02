@@ -6,75 +6,79 @@ import RecruitmentMatrix from '@/components/dashboard/RecruitmentMatrix';
 import SquadTable from '@/components/dashboard/SquadTable';
 import LeagueHistory from '@/components/dashboard/LeagueHistory';
 import TeamFormChart from '@/components/dashboard/TeamFormChart';
+import SeasonComparisonChart from '@/components/dashboard/SeasonComparisonChart';
+import TeamSeasonComparison from '@/components/dashboard/TeamSeasonComparison';
+import XGTracker from '@/components/dashboard/XGTracker';
 import { fetchTeamSummary } from '@/lib/api';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 
-// All seasons we track — newest first
-const ALL_SEASONS = ['2025-26', '2024-25', '2023-24', '2022-23', '2021-22'];
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-3 mt-8">
+    {children}
+  </p>
+);
 
 const Index = () => {
-  // Default to latest available season (auto-detected from real data)
-  const [season, setSeason] = useState('2024-25');
+  // No hardcoded default — season is set entirely from real API data
+  const [season, setSeason] = useState('');
+  const [seasons, setSeasons] = useState<string[]>([]);
 
   useEffect(() => {
     fetchTeamSummary()
       .then((data) => {
-        const seasons = data
-          .filter((r) => r.team_key === 'Chelsea')
+        const available = data
+          .filter((r) => r.team_key === 'Chelsea' && r.pts > 0)
           .map((r) => r.season_key)
-          .sort((a, b) => b.localeCompare(a));
-        if (seasons.length > 0) setSeason(seasons[0]);
+          .sort((a, b) => b.localeCompare(a)); // newest first
+        if (available.length > 0) {
+          setSeasons(available);
+          setSeason(available[0]); // always the most recent season in the data
+        }
       })
-      .catch(() => {/* keep default */});
+      .catch(() => {/* API unreachable — leave season empty, components show their own error states */});
   }, []);
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-[1400px] mx-auto">
-        <DashboardHeader />
 
-        {/* ── Historical overview — always visible, no filtering required ── */}
-        <div className="mt-4">
-          <LeagueHistory />
-        </div>
+        {/* Season selector is part of the header — top-left next to the title */}
+        <DashboardHeader season={season} seasons={seasons} onSeasonChange={setSeason} />
 
-        {/* ── Season selector — drives the detail sections below ── */}
-        <div className="flex items-center gap-3 mt-8 mb-4">
-          <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-            Season detail
-          </span>
-          <Select value={season} onValueChange={setSeason}>
-            <SelectTrigger className="w-[130px] h-7 text-xs bg-secondary border-border">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ALL_SEASONS.map((s) => (
-                <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* ── SECTION 1: Historical overview ── */}
+        <SectionLabel>Historical overview</SectionLabel>
+        <LeagueHistory />
 
-        {/* ── KPI strip for the selected season ── */}
-        <KPICards season={season} />
+        {/* Season-dependent sections only render once the API has returned a real season */}
+        {season && (
+          <>
+            {/* ── SECTION 2: Season analysis — comparison bar + points race ── */}
+            <SectionLabel>Season analysis</SectionLabel>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <SeasonComparisonChart />
+              <TeamFormChart season={season} />
+            </div>
 
-        {/* ── Team form race + position gap ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-          <TeamFormChart season={season} />
-          <PositionGapChart season={season} />
-        </div>
+            {/* ── SECTION 3: Competitive context — top-6 trend + xG tracker ── */}
+            <SectionLabel>Competitive context</SectionLabel>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <TeamSeasonComparison />
+              <XGTracker season={season} />
+            </div>
 
-        {/* ── Squad detail ── */}
-        <div className="mt-4">
-          <SquadTable season={season} />
-        </div>
+            {/* ── SECTION 4: Season drill-down — KPIs, gap chart, squad ── */}
+            <SectionLabel>Season drill-down · {season}</SectionLabel>
+            <KPICards season={season} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+              <PositionGapChart season={season} />
+              <SquadTable season={season} />
+            </div>
+          </>
+        )}
 
-        {/* ── Recruitment analysis (static / mock) ── */}
-        <div className="mt-4">
-          <RecruitmentMatrix />
-        </div>
+        {/* ── SECTION 5: Recruitment intelligence ── */}
+        <SectionLabel>Recruitment intelligence</SectionLabel>
+        <RecruitmentMatrix />
+
       </div>
     </div>
   );

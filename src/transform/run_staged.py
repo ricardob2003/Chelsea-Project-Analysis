@@ -4,7 +4,7 @@ Staged layer transform runner.
 Executes SQL transforms in dependency order:
   1. create_staged_schema  — DDL (idempotent)
   2. seed_lookups          — dim_season, dim_team, team_name_map
-  3. stg_team_season       — requires lookups + sofascore_standings + hist_xg
+  3. stg_team_season       — requires lookups + fd_standings + hist_xg
   4. stg_match             — requires lookups + understat_matches
   5. stg_player_season     — requires lookups + stg_match + understat_player_season
 
@@ -23,15 +23,11 @@ logger = logging.getLogger(__name__)
 SQL_DIR = Path(__file__).resolve().parents[2] / "sql" / "staged"
 
 STEPS = [
-    ("create_staged_schema",       "create_staged_schema.sql"),
-    ("seed_lookups",               "seed_lookups.sql"),
-    # One-time patch: corrects sofascore season codes that were off-by-one
-    # due to a bug where start year was treated as end year.
-    # Safe to re-run: idempotent once old codes are gone.
-    ("patch_sofascore_standings",  "patch_sofascore_standings.sql"),
-    ("stg_team_season",            "transform_stg_team_season.sql"),
-    ("stg_match",                  "transform_stg_match.sql"),
-    ("stg_player_season",          "transform_stg_player_season.sql"),
+    ("create_staged_schema", "create_staged_schema.sql"),
+    ("seed_lookups",         "seed_lookups.sql"),
+    ("stg_team_season",      "transform_stg_team_season.sql"),
+    ("stg_match",            "transform_stg_match.sql"),
+    ("stg_player_season",    "transform_stg_player_season.sql"),
 ]
 
 

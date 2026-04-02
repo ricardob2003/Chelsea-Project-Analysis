@@ -1,11 +1,17 @@
 """
-Sofascore ingestion — full refresh per season.
+Sofascore ingestion — RESERVED FOR FUTURE USE (match / player-rating grain).
 
-Pulls:
-  - sofascore_standings  (final season table: W/D/L/GF/GA/GD/Pts per team)
+Sofascore was previously used to ingest season standings, but that role has been
+taken over entirely by football-data.org (src/ingest/football_data.py), which
+provides the same standings data with a simpler, stable season-code scheme.
 
-Grain: team-season (20 rows per season).
-Full refresh — small table, safe to wipe and reload each run.
+Sofascore's value is at a finer grain — per-match player ratings, shot maps, and
+incident timelines — which are not available from football-data or Understat.
+This module is retained as the starting point for that future work.
+
+Currently ingests:
+  - sofascore_standings  (season table: W/D/L/GF/GA/GD/Pts per team)
+    → NOT used by any transform; football_data is the standings source.
 """
 
 import logging
@@ -81,7 +87,8 @@ def _insert_standings(conn, df: pd.DataFrame, season: str, batch_id: str) -> int
 
 def run(seasons: list[int] | None = None) -> None:
     if seasons is None:
-        seasons = [2022, 2023, 2024, 2025]
+        from src.utils.seasons import season_window
+        seasons = season_window(n=4)
 
     batch_id = str(uuid.uuid4())[:8]
     logger.info(f"Sofascore ingest — batch {batch_id}, seasons {seasons}")

@@ -1,28 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, ReferenceLine,
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { fetchTeamForm, type TeamForm } from '@/lib/api';
+import { TEAM_COLORS, teamColor } from '@/lib/teamColors';
 
 interface TeamFormChartProps {
   season: string;
-}
-
-// Colours for each team — Chelsea is gold, others are distinct muted hues
-const TEAM_COLORS: Record<string, string> = {
-  'Chelsea':           '#D4AF37',
-  'Arsenal':           '#EF4444',
-  'Liverpool':         '#F97316',
-  'Manchester City':   '#60A5FA',
-  'Manchester United': '#EC4899',
-  'Tottenham':         '#A78BFA',
-  'Newcastle United':  '#94A3B8',
-  'Aston Villa':       '#7EC8C8',
-};
-const FALLBACK_COLORS = ['#94A3B8', '#7EC8C8', '#6EE7B7', '#FCA5A5'];
-
-function teamColor(team: string, idx: number): string {
-  return TEAM_COLORS[team] ?? FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
 }
 
 type ChartRow = { matchday: number } & Record<string, number>;

@@ -255,7 +255,11 @@ def run(season_years: list[int] | None = None) -> None:
     season_years: list of season start years, e.g. [2021, 2022, 2023, 2024]
     """
     if season_years is None:
-        season_years = [2023, 2024, 2025]
+        from src.utils.seasons import season_window
+        # Covers the live season + recent buffer. Historical seasons (≤ 2023-24)
+        # are sourced from raw.hist_team_season (FBref static export), so fd only
+        # needs to stay current rather than backfill the full history.
+        season_years = season_window(n=3)
 
     batch_id = str(uuid.uuid4())[:8]
     logger.info(f"football-data.org ingest — batch {batch_id}, seasons {season_years}")

@@ -75,7 +75,16 @@ const LeagueHistory = () => {
             <TableBody>
               {rows.map((row, i) => (
                 <TableRow key={row.season_key} className="border-border hover:bg-secondary/50">
-                  <TableCell className="font-mono text-sm text-foreground">{row.season_key}</TableCell>
+                  <TableCell className="font-mono text-sm text-foreground">
+                    <span className="flex items-center gap-2">
+                      {row.season_key}
+                      {row.mp < 38 && (
+                        <span className="text-[9px] font-sans font-semibold px-1.5 py-0.5 rounded bg-chelsea-blue/30 text-chelsea-gold border border-chelsea-gold/30 uppercase tracking-wider">
+                          {row.mp} gms
+                        </span>
+                      )}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-center">
                     <span className={`inline-flex items-center justify-center w-7 h-7 rounded-md text-xs font-bold ${getPositionBadge(row.table_rank)}`}>
                       {row.table_rank}
