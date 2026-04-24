@@ -1,87 +1,155 @@
 import { useEffect, useState } from 'react';
-import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import KPICards from '@/components/dashboard/KPICards';
-import PositionGapChart from '@/components/dashboard/PositionGapChart';
-import RecruitmentMatrix from '@/components/dashboard/RecruitmentMatrix';
-import SquadTable from '@/components/dashboard/SquadTable';
+import { useNavigate } from 'react-router-dom';
+import { TrendingUp, PoundSterling, Users, ArrowRight } from 'lucide-react';
+import AppNav from '@/components/AppNav';
 import LeagueHistory from '@/components/dashboard/LeagueHistory';
-import TeamFormChart from '@/components/dashboard/TeamFormChart';
 import SeasonComparisonChart from '@/components/dashboard/SeasonComparisonChart';
-import TeamSeasonComparison from '@/components/dashboard/TeamSeasonComparison';
-import XGTracker from '@/components/dashboard/XGTracker';
-import { fetchTeamSummary } from '@/lib/api';
+import Top6History from '@/components/dashboard/Top6History';
+import { fetchTeamSummary, type TeamSeasonSummary } from '@/lib/api';
 
-const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-3 mt-8">
-    {children}
-  </p>
-);
+// ── Overview KPI strip ────────────────────────────────────────────────────────
 
-const Index = () => {
-  // No hardcoded default — season is set entirely from real API data
-  const [season, setSeason] = useState('');
-  const [seasons, setSeasons] = useState<string[]>([]);
+const OverviewKPIs = () => {
+    const [current, setCurrent] = useState<TeamSeasonSummary | null>(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchTeamSummary()
-      .then((data) => {
-        const available = data
-          .filter((r) => r.team_key === 'Chelsea' && r.pts > 0)
-          .map((r) => r.season_key)
-          .sort((a, b) => b.localeCompare(a)); // newest first
-        if (available.length > 0) {
-          setSeasons(available);
-          setSeason(available[0]); // always the most recent season in the data
+    useEffect(() => {
+        fetchTeamSummary()
+            .then((data) => {
+                const chelsea = data.filter((r) => r.team_key === 'Chelsea' && r.pts > 0).sort((a, b) => b.season_key.localeCompare(a.season_key));
+                setCurrent(chelsea[0] ?? null);
+            })
+            .finally(() => setLoading(false));
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="stat-gradient rounded-lg border border-border p-5 animate-pulse h-24" />
+                ))}
+            </div>
+        );
+    }
+
+    if (!current) return null;
+
+    const kpis = [
+        { label: 'Season', value: current.season_key, sub: 'current' },
+        { label: 'Position', value: `${current.table_rank}${['st', 'nd', 'rd'][current.table_rank - 1] ?? 'th'}`, sub: `${current.pts} pts` },
+        {
+            label: 'vs UCL Cutoff',
+            value: current.pts_vs_ucl_cutoff >= 0 ? `+${current.pts_vs_ucl_cutoff}` : String(current.pts_vs_ucl_cutoff),
+            sub: `cutoff: ${current.ucl_cutoff_pts} pts`
+        },
+        {
+            label: 'vs Champion',
+            value: current.pts_vs_champion >= 0 ? `+${current.pts_vs_champion}` : String(current.pts_vs_champion),
+            sub: `champion: ${current.champion_pts} pts`
         }
-      })
-      .catch(() => {/* API unreachable — leave season empty, components show their own error states */});
-  }, []);
+    ];
 
-  return (
-    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
-      <div className="max-w-[1400px] mx-auto">
-
-        {/* Season selector is part of the header — top-left next to the title */}
-        <DashboardHeader season={season} seasons={seasons} onSeasonChange={setSeason} />
-
-        {/* ── SECTION 1: Historical overview ── */}
-        <SectionLabel>Historical overview</SectionLabel>
-        <LeagueHistory />
-
-        {/* Season-dependent sections only render once the API has returned a real season */}
-        {season && (
-          <>
-            {/* ── SECTION 2: Season analysis — comparison bar + points race ── */}
-            <SectionLabel>Season analysis</SectionLabel>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <SeasonComparisonChart />
-              <TeamFormChart season={season} />
-            </div>
-
-            {/* ── SECTION 3: Competitive context — top-6 trend + xG tracker ── */}
-            <SectionLabel>Competitive context</SectionLabel>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <TeamSeasonComparison />
-              <XGTracker season={season} />
-            </div>
-
-            {/* ── SECTION 4: Season drill-down — KPIs, gap chart, squad ── */}
-            <SectionLabel>Season drill-down · {season}</SectionLabel>
-            <KPICards season={season} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-              <PositionGapChart season={season} />
-              <SquadTable season={season} />
-            </div>
-          </>
-        )}
-
-        {/* ── SECTION 5: Recruitment intelligence ── */}
-        <SectionLabel>Recruitment intelligence</SectionLabel>
-        <RecruitmentMatrix />
-
-      </div>
-    </div>
-  );
+    return (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            {kpis.map((k) => (
+                <div key={k.label} className="stat-gradient rounded-lg border border-border p-5">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-2">{k.label}</p>
+                    <p className="text-2xl font-bold font-mono text-foreground">{k.value}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{k.sub}</p>
+                </div>
+            ))}
+        </div>
+    );
 };
+
+// ── Module navigation cards ───────────────────────────────────────────────────
+
+interface ModuleCardProps {
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+    status: string;
+    statusOk: boolean;
+    to: string;
+}
+
+const ModuleCard = ({ icon, title, description, status, statusOk, to }: ModuleCardProps) => {
+    const navigate = useNavigate();
+    return (
+        <button
+            onClick={() => navigate(to)}
+            className="stat-gradient rounded-lg border border-border p-5 text-left hover:border-chelsea-gold/40 transition-colors group w-full">
+            <div className="flex items-start justify-between mb-3">
+                <div className="w-8 h-8 rounded-md bg-chelsea-blue/20 flex items-center justify-center text-chelsea-gold">{icon}</div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-chelsea-gold transition-colors" />
+            </div>
+            <h3 className="text-sm font-semibold text-foreground mb-1">{title}</h3>
+            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{description}</p>
+            <span
+                className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                    statusOk
+                        ? 'bg-chelsea-blue/20 text-chelsea-gold border border-chelsea-gold/30'
+                        : 'bg-secondary text-muted-foreground border border-border'
+                }`}>
+                {status}
+            </span>
+        </button>
+    );
+};
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+const Index = () => (
+    <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
+        <div className="max-w-[1400px] mx-auto">
+            <AppNav />
+
+            {/* Current season hero */}
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-3">Current season</p>
+            <OverviewKPIs />
+
+            {/* Module navigation */}
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-3 mt-8">Modules</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <ModuleCard
+                    icon={<TrendingUp className="w-4 h-4" />}
+                    title="Sporting Performance"
+                    description="League position, points trajectory, xG analysis, form trends, home/away splits and positional gaps vs the top 4."
+                    status="Live data"
+                    statusOk
+                    to="/sporting"
+                />
+                <ModuleCard
+                    icon={<PoundSterling className="w-4 h-4" />}
+                    title="Financial Performance"
+                    description="Transfer spend, net spend by season, fee-per-minute ROI, and spend by position group vs comparator clubs."
+                    status="Coming soon — Pillar 2"
+                    statusOk={false}
+                    to="/financials"
+                />
+                <ModuleCard
+                    icon={<Users className="w-4 h-4" />}
+                    title="Squad Assessment"
+                    description="Player minutes, availability, per90 output, and positional gap analysis vs the top-4 cohort."
+                    status="Live data"
+                    statusOk
+                    to="/squad"
+                />
+            </div>
+
+            {/* Points per season overview */}
+            <div className="mt-6 mb-2">
+                <SeasonComparisonChart />
+            </div>
+
+            {/* Historical overview */}
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium mb-3 mt-2">Historical overview</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <LeagueHistory />
+                <Top6History />
+            </div>
+        </div>
+    </div>
+);
 
 export default Index;

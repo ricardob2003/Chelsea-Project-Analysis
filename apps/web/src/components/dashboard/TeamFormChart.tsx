@@ -9,12 +9,81 @@ interface TeamFormChartProps {
   season: string;
 }
 
+const TOP_6 = ['Arsenal', 'Chelsea', 'Liverpool', 'Manchester City', 'Manchester United', 'Tottenham'];
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+
+  const entries = payload
+    .filter((p: any) => p.value != null)
+    .map((p: any) => ({ name: p.name, pts: p.value as number, color: p.stroke }))
+    .sort((a: any, b: any) => b.pts - a.pts);
+
+  const leader = entries[0]?.pts ?? 0;
+
+  return (
+    <div style={{
+      backgroundColor: 'hsl(220, 18%, 10%)',
+      border: '1px solid hsl(38, 92%, 50%)',
+      borderRadius: 10,
+      padding: '10px 14px',
+      fontFamily: 'JetBrains Mono, monospace',
+      fontSize: 11,
+      minWidth: 200,
+    }}>
+      <p style={{ color: 'hsl(215,15%,55%)', marginBottom: 8, fontSize: 10 }}>
+        Matchday {label}
+      </p>
+      {entries.map((e: any, i: number) => {
+        const gap = e.pts - leader;
+        const isChelsea = e.name === 'Chelsea';
+        return (
+          <div key={e.name} style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            marginBottom: i < entries.length - 1 ? 5 : 0,
+            paddingBottom: i < entries.length - 1 ? 5 : 0,
+            borderBottom: i < entries.length - 1 ? '1px solid hsl(220,14%,18%)' : 'none',
+          }}>
+            <span style={{ color: 'hsl(215,15%,50%)', width: 14, textAlign: 'right', flexShrink: 0 }}>
+              {i + 1}
+            </span>
+            <span style={{
+              width: 7, height: 7, borderRadius: '50%',
+              backgroundColor: e.color, flexShrink: 0,
+            }} />
+            <span style={{
+              flex: 1,
+              color: isChelsea ? '#D4AF37' : 'hsl(210,20%,85%)',
+              fontWeight: isChelsea ? 700 : 400,
+            }}>
+              {e.name}
+            </span>
+            <span style={{ color: isChelsea ? '#D4AF37' : 'hsl(210,20%,85%)', fontWeight: 600 }}>
+              {e.pts}
+            </span>
+            {gap < 0 && (
+              <span style={{ color: 'hsl(215,15%,45%)', fontSize: 10, width: 28, textAlign: 'right' }}>
+                {gap}
+              </span>
+            )}
+            {gap === 0 && (
+              <span style={{ color: 'hsl(38,92%,50%)', fontSize: 10, width: 28, textAlign: 'right' }}>
+                ldr
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 type ChartRow = { matchday: number } & Record<string, number>;
 
 function buildChartData(rows: TeamForm[]): { teams: string[]; data: ChartRow[] } {
-  const teams = [...new Set(rows.map((r) => r.team_key))].sort((a, b) =>
-    a === 'Chelsea' ? -1 : b === 'Chelsea' ? 1 : a.localeCompare(b),
-  );
+  const teams = [...new Set(rows.map((r) => r.team_key))]
+    .filter((t) => TOP_6.includes(t))
+    .sort((a, b) => a === 'Chelsea' ? -1 : b === 'Chelsea' ? 1 : a.localeCompare(b));
   const matchdays = [...new Set(rows.map((r) => r.matchday))].sort((a, b) => a - b);
 
   const data: ChartRow[] = matchdays.map((md) => {
@@ -84,18 +153,7 @@ const TeamFormChart = ({ season }: TeamFormChartProps) => {
                 tickLine={false}
                 width={28}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(220, 18%, 12%)',
-                  border: '1px solid hsl(220, 14%, 22%)',
-                  borderRadius: '8px',
-                  fontSize: '11px',
-                  color: 'hsl(210, 20%, 92%)',
-                  fontFamily: 'JetBrains Mono',
-                }}
-                labelFormatter={(v) => `Matchday ${v}`}
-                formatter={(value: number, name: string) => [value, name]}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Legend
                 wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }}
                 formatter={(value) => (

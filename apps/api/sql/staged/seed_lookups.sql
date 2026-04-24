@@ -85,6 +85,7 @@ INSERT INTO staged.team_name_map (raw_name, team_key) VALUES
     ('Sheffield United',            'Sheffield United'),
     ('Southampton',                 'Southampton'),
     ('Tottenham',                   'Tottenham'),
+    ('Norwich',                     'Norwich City'),
     ('West Bromwich Albion',        'West Bromwich Albion'),
     ('West Ham',                    'West Ham'),
     ('Wolverhampton Wanderers',     'Wolverhampton Wanderers'),

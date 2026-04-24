@@ -33,7 +33,13 @@ def season_window(n: int = 3, today: date | None = None) -> list[int]:
 
 def season_window_understat(n: int = 4, today: date | None = None) -> list[int]:
     """
-    Understat uses start year too, but we want one extra season back
-    for player history depth (default 4 seasons).
+    Return the last `n` Understat/soccerdata season integers (start-year convention).
+
+    soccerdata uses the year the PL season STARTS:
+      seasons=2025 → 2025-26 PL (starting Aug 2025)
+      seasons=2024 → 2024-25 PL (starting Aug 2024)
+
+    Example: called in April 2026 → start=2025 → window=[2022,2023,2024,2025]
     """
-    return season_window(n=n, today=today)
+    start = current_season_start(today)
+    return list(range(start - n + 1, start + 1))

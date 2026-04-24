@@ -157,3 +157,88 @@ Dashboards will connect exclusively to SQL views in the mart schema.
 - Pipeline run logging
 
 ---
+
+## 4. Dashboard Pillars
+
+The dashboard is structured around four sequential pillars, reflecting the order
+in which analysis must be understood before recruitment decisions can be made.
+
+---
+
+### Pillar 1 — Sporting Performance ✓ (in progress)
+
+*How is this Chelsea team performing vs previous Chelsea sides and vs the rest of the league?*
+
+**Status:** Core metrics built. Remaining work: data pipeline stabilisation.
+
+**What's built:**
+- Historical league finishes table (position, pts, W/D/L, GF/GA, GD, vs champion, vs UCL)
+- Season comparison bar chart (points by season, coloured by finish tier)
+- Cumulative points race chart (Chelsea vs top 6 by matchday)
+- xG tracker (cumulative goals vs xG, luck gap)
+- KPI cards: position, points, xGD, vs UCL cutoff, PPM, GD
+- Form stats row: clean sheet rate, unbeaten run, xG luck gap, home/away PPM splits
+- Monthly form chart: points and GD by calendar month
+
+**Deferred (no data source yet):**
+- U-22 minutes share, avg age by position group (requires roster DOB data)
+- Defender/GK specialist metrics (tackles, saves — not in current sources)
+
+---
+
+### Pillar 2 — Financial Performance (Transfer Market)
+
+*What has Chelsea spent, on whom, at what age, and did it deliver?*
+
+**Status:** Not started. Data source not yet ingested.
+
+**Planned metrics:**
+- Gross spend, net spend per season vs comparator clubs (Arsenal, Liverpool, Man City, Newcastle)
+- Spend by position group
+- Average age of signings (U22 policy in practice)
+- Fee paid per 90 minutes delivered (ROI per signing)
+- Origin clubs — where is Chelsea buying from/selling to?
+
+**Data source:** Transfermarkt (via `soccerdata` Transfermarkt reader)
+
+**Comparator window:** 2022-23 (Boehly takeover) → present
+
+---
+
+### Pillar 3 — Current Squad Metrics
+
+*Who is in the squad, are they performing, and where are the structural gaps?*
+
+**Status:** Partial. Player minutes/per90 built. Age and depth gaps deferred.
+
+**What's built:**
+- Squad table: player minutes, availability rate, G+A/90, xG/90, xA/90, sample confidence
+- Position gap chart: Chelsea per90 vs top-4 cohort by position group
+
+**Planned additions:**
+- Player age at season start (requires roster data with DOB)
+- U-22 share of minutes
+- Depth count by position group vs top-4 benchmark
+- Contract expiry context (requires external data)
+
+---
+
+### Pillar 4 — Financial Performance v2 (Club Accounting)
+
+*What are Chelsea's actual recorded losses, PSR position, and financial health?*
+
+**Status:** Not started. Requires manual data curation from annual reports.
+
+**Planned metrics:**
+- Annual revenue, wages, operating loss, net loss (per season)
+- Transfer fee amortisation burden
+- PSR headroom estimate
+- Comparison vs Arsenal, Liverpool, Man City, Newcastle
+
+**Data source:** Static dataset manually curated from Companies House filings
+and published annual reports. Updated once per year when filings are released.
+
+**Key concept:** Transfer fees are amortised over contract length on the P&L
+(e.g. £100m player on 5yr deal = £20m/yr charge, not £100m upfront). This is
+the primary driver of Chelsea's recorded losses and must be understood before
+any recruitment ROI analysis.

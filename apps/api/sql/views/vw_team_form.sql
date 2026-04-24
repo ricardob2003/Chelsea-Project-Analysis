@@ -1,12 +1,7 @@
 -- =============================================================================
 -- VIEW: vw_team_form
--- Source: staged.stg_match, staged.stg_team_season, staged.dim_season
--- Grain: one row per team per match
---
--- Focus teams:
---   - Traditional top 6 (always included regardless of season finish):
---       Arsenal, Chelsea, Liverpool, Manchester City, Manchester United, Tottenham
---   - Actual top 6 per season (dynamic — catches strong seasons from other teams)
+-- Source: staged.stg_match
+-- Grain: one row per team per match (all 20 PL teams)
 --
 -- Metric tracks:
 --   - Per-match:   raw outcomes + xG story columns
@@ -20,45 +15,19 @@
 --   cumul_luck_gap       = SUM(xpts - pts) season (positive = results consistently below quality)
 -- =============================================================================
 
-CREATE OR REPLACE VIEW views.vw_team_form AS
+DROP VIEW IF EXISTS views.vw_team_form;
+CREATE VIEW views.vw_team_form AS
 
 WITH
 
--- Traditional top 6 — always included in every season
-traditional_top6 (team_key) AS (
-    VALUES
-        ('Arsenal'),
-        ('Chelsea'),
-        ('Liverpool'),
-        ('Manchester City'),
-        ('Manchester United'),
-        ('Tottenham')
-),
-
--- Focus teams per season: traditional top 6 + actual top 6 (union, no duplicates)
-focus_teams AS (
-    -- Traditional top 6 cross-joined to every season with data
-    SELECT ds.season_key, t.team_key
-    FROM staged.dim_season ds
-    CROSS JOIN traditional_top6 t
-
-    UNION
-
-    -- Actual top 6 per season (catches non-traditional teams e.g. Newcastle 2022-23)
-    SELECT season_key, team_key
-    FROM staged.stg_team_season
-    WHERE table_rank <= 6
-),
-
 -- Unpivot stg_match to one row per team per match
-team_matches AS (
+team_matches_raw AS (
 
     -- Home perspective
     SELECT
         game_id,
         season_key,
         match_date,
-        matchday,
         home_team_key           AS team_key,
         away_team_key           AS opponent_key,
         TRUE                    AS is_home,
@@ -82,7 +51,6 @@ team_matches AS (
         game_id,
         season_key,
         match_date,
-        matchday,
         away_team_key           AS team_key,
         home_team_key           AS opponent_key,
         FALSE                   AS is_home,
@@ -100,13 +68,16 @@ team_matches AS (
     FROM staged.stg_match
 ),
 
--- Restrict to focus teams only
-focus AS (
-    SELECT tm.*
-    FROM team_matches tm
-    JOIN focus_teams ft
-        ON  ft.season_key = tm.season_key
-        AND ft.team_key   = tm.team_key
+-- Derive per-team sequential game number ordered by actual date
+-- (stg_match.matchday is home-game sequence for the home team — not usable per-team)
+-- game_id used as tie-breaker to ensure deterministic ordering when dates coincide
+team_matches AS (
+    SELECT *,
+        ROW_NUMBER() OVER (
+            PARTITION BY team_key, season_key
+            ORDER BY match_date, game_id
+        ) AS matchday
+    FROM team_matches_raw
 ),
 
 -- Compute rolling and cumulative metrics via window functions
@@ -157,7 +128,7 @@ enriched AS (
         ROUND(SUM(xg - goals_for)   OVER ws, 3)  AS cumul_xg_overperf,  -- positive = consistent underconversion
         ROUND(SUM(xpts - points)    OVER ws, 3)  AS cumul_luck_gap       -- positive = quality not reflected in results
 
-    FROM focus
+    FROM team_matches
     WINDOW
         -- rolling 5: current match + 4 preceding (ordered by matchday within team-season)
         w5 AS (

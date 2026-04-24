@@ -30,6 +30,7 @@ export interface TeamSeasonSummary {
   xg: number | null;
   xga: number | null;
   xgd: number | null;
+  xpts: number | null;
   standings_source: string;
   xg_source: string | null;
 }

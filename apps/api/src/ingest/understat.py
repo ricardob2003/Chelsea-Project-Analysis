@@ -23,13 +23,16 @@ from src.utils.db import get_connection, get_last_watermark, log_ingestion
 
 logger = logging.getLogger(__name__)
 
-# Map season label used in soccerdata to our canonical key (e.g. 2023 -> '2324')
-SEASON_CODE_MAP = {
-    2021: "2122",
-    2022: "2223",
-    2023: "2324",
-    2024: "2425",
-    2025: "2526",
+# Maps CLI start-year integer → (soccerdata season specifier, raw storage code).
+# Integer season IDs are ambiguous in soccerdata — use string "YY-YY" format instead.
+# CLI integer = the year the PL season STARTS.
+SEASON_MAP: dict[int, tuple[str, str]] = {
+    2020: ("20-21", "2021"),   # 2020-21 PL
+    2021: ("21-22", "2122"),   # 2021-22 PL
+    2022: ("22-23", "2223"),   # 2022-23 PL
+    2023: ("23-24", "2324"),   # 2023-24 PL
+    2024: ("24-25", "2425"),   # 2024-25 PL
+    2025: ("25-26", "2526"),   # 2025-26 PL (current)
 }
 
 LEAGUE = "ENG-Premier League"
@@ -178,15 +181,16 @@ def run(seasons: list[int] | None = None) -> None:
     logger.info(f"Understat ingest — batch {batch_id}, seasons {seasons}")
 
     for sd_season in seasons:
-        season_code = SEASON_CODE_MAP.get(sd_season)
-        if not season_code:
+        mapping = SEASON_MAP.get(sd_season)
+        if not mapping:
             logger.warning(f"No season code mapping for {sd_season}, skipping")
             continue
 
+        sd_specifier, season_code = mapping
         logger.info(f"Processing season {sd_season} → {season_code}")
 
         try:
-            scraper = sd.Understat(leagues=LEAGUE, seasons=sd_season)
+            scraper = sd.Understat(leagues=LEAGUE, seasons=sd_specifier)
             schedule = scraper.read_schedule().reset_index()
             team_stats = scraper.read_team_match_stats().reset_index()
 
